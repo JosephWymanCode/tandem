@@ -1,0 +1,33 @@
+{
+  "name": "tandem",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Real-time collaborative kanban board",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w @tandem/server\" \"npm run dev -w @tandem/client\"",
+    "build": "npm run build -w @tandem/client && npm run build -w @tandem/server",
+    "start": "node packages/server/dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/server && tsc --noEmit -p packages/client",
+    "lint": "eslint .",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "concurrently": "^10.0.7",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^5.1.0"
+  }
+}

@@ -202,7 +202,7 @@ export async function buildApp(options: AppOptions) {
     // the visitor.
     const origin = request.headers.origin;
     if (origin) {
-      let sameHost = false;
+      let sameHost: boolean;
       try {
         sameHost = new URL(origin).host === request.headers.host;
       } catch {

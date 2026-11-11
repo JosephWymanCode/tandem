@@ -24,6 +24,8 @@ import {
 import { cardsInColumn, keyBetween, sortedColumns, type BoardState, type Member, type Peer } from '@tandem/shared';
 import { CursorShape } from '../components/HeroDemo';
 import { CardFace } from './Card';
+import { FilterEmpty } from './FilterBar';
+import { dropPosition, isFiltering, matches, useFilter } from './filter';
 import { Lane, LaneGhost } from './Lane';
 import { useBoard } from './store';
 
@@ -139,6 +141,16 @@ export function Canvas({
   const items = drag?.type === 'card' ? drag.items : settled;
   const idsIn = (columnId: string) => (items[columnId] ?? []).filter((id) => board.cards[id]);
 
+  // A filter only hides cards for this person. The card in hand always stays in view.
+  const filter = useFilter();
+  const filtering = isFiltering(filter);
+  const shown = (id: string) => {
+    const card = board.cards[id];
+    return card !== undefined && (!filtering || id === drag?.id || matches(card, filter));
+  };
+  const visibleIn = (columnId: string) => idsIn(columnId).filter(shown);
+  const nothingShown = filtering && columns.every((column) => visibleIn(column.id).length === 0);
+
   // Which cards other people currently have open or in hand.
   const editors: Record<string, Peer> = {};
   for (const peer of peers) if (peer.editing) editors[peer.editing] = peer;
@@ -215,7 +227,8 @@ export function Canvas({
     const container = findContainer(activeId, current.items);
     if (!card || !container || !board.columns[container]) return;
 
-    let list = current.items[container]!.filter((id) => board.cards[id]);
+    // Neighbours are the cards the person can see; hidden ones are accounted for below.
+    let list = current.items[container]!.filter(shown);
     if (findContainer(overId, current.items) === container && overId !== activeId && !(overId in current.items)) {
       const from = list.indexOf(activeId);
       const to = list.indexOf(overId);
@@ -227,18 +240,19 @@ export function Canvas({
     const after = list[index + 1];
 
     // Dropped back where it started: nothing to send.
-    const original = settled[card.columnId] ?? [];
+    const original = (settled[card.columnId] ?? []).filter(shown);
     const originalIndex = original.indexOf(activeId);
     if (card.columnId === container && original[originalIndex - 1] === before && original[originalIndex + 1] === after) {
       return;
     }
 
-    // Only this card changes: it gets a position between its new neighbours.
+    // Only this card changes: it goes directly under the card seen above it,
+    // ahead of any cards a filter is hiding there.
     dispatch({
       type: 'card.move',
       id: activeId,
       columnId: container,
-      pos: keyBetween(board.cards[before ?? '']?.pos ?? null, board.cards[after ?? '']?.pos ?? null),
+      pos: dropPosition(cardsInColumn(board, container), activeId, before ?? null),
     });
   };
 
@@ -252,6 +266,7 @@ export function Canvas({
 
   return (
     <div className="canvas">
+      {nothingShown && <FilterEmpty />}
       <div className="surface" ref={surface} onPointerMove={onPointerMove} onPointerLeave={() => setCursor(null)}>
         <DndContext
           sensors={sensors}
@@ -269,7 +284,8 @@ export function Canvas({
               <Lane
                 key={column.id}
                 column={column}
-                cardIds={idsIn(column.id)}
+                cardIds={visibleIn(column.id)}
+                allCardIds={idsIn(column.id)}
                 board={board}
                 members={members}
                 editors={editors}
@@ -283,7 +299,7 @@ export function Canvas({
                 <CardFace card={dragged} assignee={members.find((member) => member.id === dragged.assigneeId)} />
               </div>
             )}
-            {draggedColumn && <LaneGhost column={draggedColumn} cardIds={idsIn(draggedColumn.id)} board={board} />}
+            {draggedColumn && <LaneGhost column={draggedColumn} cardIds={visibleIn(draggedColumn.id)} board={board} />}
           </DragOverlay>
         </DndContext>
         <AddColumn lastPos={columns[columns.length - 1]?.pos ?? null} />

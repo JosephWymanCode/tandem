@@ -1,3 +1,4 @@
+export * from './comments';
 export * from './fractional';
 export * from './model';
 export * from './protocol';

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { opSchema, type BoardState, type Op } from './model';
+import type { Comment } from './comments';
 
 /** WebSocket close codes the client reacts to. */
 export const CLOSE = {
@@ -56,6 +57,8 @@ interface SessionInfo {
   members: Member[];
   peers: Peer[];
   inviteToken: string;
+  /** How many comments each card has. Cards without comments are left out. */
+  commentCounts: Record<string, number>;
 }
 
 export type ServerMsg =
@@ -67,6 +70,8 @@ export type ServerMsg =
   | { t: 'peer.leave'; connId: string }
   | { t: 'presence'; connId: string; cursor?: Cursor | null; editing?: string | null }
   | { t: 'members'; members: Member[] }
+  | { t: 'comment.added'; comment: Comment }
+  | { t: 'comment.deleted'; commentId: string; cardId: string }
   | { t: 'pong' };
 
 const coordinate = z.number().finite().min(-100_000).max(100_000);

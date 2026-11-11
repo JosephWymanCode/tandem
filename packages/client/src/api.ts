@@ -1,3 +1,5 @@
+import type { Comment } from '@tandem/shared';
+
 export interface User {
   id: string;
   email: string | null;
@@ -53,4 +55,10 @@ export const api = {
   deleteBoard: (id: string) => request<{ ok: true }>('DELETE', `/api/boards/${id}`),
   invite: (token: string) => request<{ title: string }>('GET', `/api/invites/${token}`),
   join: (token: string) => request<{ boardId: string }>('POST', `/api/invites/${token}/join`),
+  comments: (boardId: string, cardId: string) =>
+    request<{ comments: Comment[] }>('GET', `/api/boards/${boardId}/cards/${cardId}/comments`),
+  addComment: (boardId: string, cardId: string, body: string) =>
+    request<{ comment: Comment }>('POST', `/api/boards/${boardId}/cards/${cardId}/comments`, { body }),
+  deleteComment: (boardId: string, commentId: string) =>
+    request<{ ok: true }>('DELETE', `/api/boards/${boardId}/comments/${commentId}`),
 };

@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import type { Activity, BoardState, Card, Column, Label, Member, Op, OpEvent } from '@tandem/shared';
+import type { Activity, BoardState, Card, Column, Comment, Label, Member, Op, OpEvent } from '@tandem/shared';
 import { transaction, type Db } from './db';
 
 export interface User {
@@ -338,4 +338,66 @@ export class Repo {
       summary: row.summary as string,
     }));
   }
+
+  // ---- Comments -----------------------------------------------------------
+
+  cardExists(boardId: string, cardId: string): boolean {
+    return this.db.prepare('SELECT 1 FROM cards WHERE board_id = ? AND id = ?').get(boardId, cardId) !== undefined;
+  }
+
+  /** Oldest first. */
+  listComments(boardId: string, cardId: string): Comment[] {
+    const rows = this.db
+      .prepare('SELECT * FROM comments WHERE board_id = ? AND card_id = ? ORDER BY created_at, rowid')
+      .all(boardId, cardId) as Row[];
+    return rows.map(toComment);
+  }
+
+  addComment(boardId: string, cardId: string, author: User, body: string): Comment {
+    const comment: Comment = {
+      id: randomUUID(),
+      cardId,
+      authorId: author.id,
+      authorName: author.name,
+      body,
+      createdAt: Date.now(),
+    };
+    this.db
+      .prepare(
+        'INSERT INTO comments (id, board_id, card_id, author_id, author_name, body, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      )
+      .run(comment.id, boardId, cardId, author.id, author.name, body, comment.createdAt);
+    return comment;
+  }
+
+  findComment(boardId: string, commentId: string): Comment | null {
+    const row = this.db.prepare('SELECT * FROM comments WHERE board_id = ? AND id = ?').get(boardId, commentId) as
+      | Row
+      | undefined;
+    return row ? toComment(row) : null;
+  }
+
+  /** Returns true if the comment was there to delete. */
+  deleteComment(boardId: string, commentId: string): boolean {
+    return this.db.prepare('DELETE FROM comments WHERE board_id = ? AND id = ?').run(boardId, commentId).changes > 0;
+  }
+
+  /** Comment totals by card, leaving out cards that have none. */
+  commentCounts(boardId: string): Record<string, number> {
+    const rows = this.db
+      .prepare('SELECT card_id, COUNT(*) AS total FROM comments WHERE board_id = ? GROUP BY card_id')
+      .all(boardId) as Row[];
+    return Object.fromEntries(rows.map((row) => [row.card_id as string, row.total as number]));
+  }
+}
+
+function toComment(row: Row): Comment {
+  return {
+    id: row.id as string,
+    cardId: row.card_id as string,
+    authorId: row.author_id as string,
+    authorName: row.author_name as string,
+    body: row.body as string,
+    createdAt: row.created_at as number,
+  };
 }

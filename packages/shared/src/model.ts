@@ -45,14 +45,18 @@ const pos = z
   .regex(/^[0-9A-Za-z]*[1-9A-Za-z]$/);
 const title = z.string().trim().min(1).max(LIMITS.titleLength);
 
-/** A real calendar date written as YYYY-MM-DD, such as 2026-11-14 (2026-02-30 is rejected). */
+/**
+ * A real calendar date written as YYYY-MM-DD between the years 1000 and 9999,
+ * such as 2026-11-14 (2026-02-30 is rejected).
+ */
 export const dueDateSchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .regex(/^[1-9]\d{3}-(0[1-9]|1[0-2])-\d{2}$/)
   .refine((value) => {
     const [year, month, day] = value.split('-').map(Number) as [number, number, number];
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+    const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]!;
+    return day >= 1 && day <= daysInMonth;
   }, 'Not a real calendar date');
 
 const cardPatch = z

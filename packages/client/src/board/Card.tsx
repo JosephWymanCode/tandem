@@ -31,7 +31,7 @@ export function CardFace({ card, assignee, editor }: CardFaceProps) {
             </svg>
           )}
           {card.dueDate && <DueBadge date={card.dueDate} />}
-          {assignee &&<Avatar name={assignee.name} color={assignee.color} size={22} />}
+          {assignee && <Avatar name={assignee.name} color={assignee.color} size={22} />}
         </span>
       )}
       {editor && (

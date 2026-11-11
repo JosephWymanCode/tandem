@@ -51,22 +51,17 @@ export function formatDueDate(due: string, today: string, locale?: string): stri
 // ---- Today's date, shared by every badge -------------------------------------
 
 const REFRESH_MS = 60_000;
-let today = localDateKey(new Date());
 let timer: ReturnType<typeof setInterval> | undefined;
 const listeners = new Set<() => void>();
 
+/** Asks every badge to re-read the date. React only re-renders the ones whose date changed. */
 function refresh() {
-  const next = localDateKey(new Date());
-  if (next === today) return;
-  today = next;
   for (const listener of listeners) listener();
 }
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
   if (listeners.size === 1) {
-    // The page may have sat in the background past midnight with nothing listening.
-    refresh();
     timer = setInterval(refresh, REFRESH_MS);
     document.addEventListener('visibilitychange', refresh);
   }
@@ -79,12 +74,13 @@ function subscribe(listener: () => void) {
   };
 }
 
-const getToday = () => today;
+/** The snapshot is a date string, so it stays equal all day and only changes at midnight. */
+const getToday = () => localDateKey(new Date());
 
 /**
- * The current local date as YYYY-MM-DD. It is held in one shared store that
- * checks the clock every minute, so components re-render when the day
- * changes without reading the clock during render.
+ * The current local date as YYYY-MM-DD, from one shared store that checks
+ * the clock every minute (and when the tab becomes visible), so badges
+ * re-render when the day changes. Components never read the clock themselves.
  */
 export function useToday(): string {
   return useSyncExternalStore(subscribe, getToday);

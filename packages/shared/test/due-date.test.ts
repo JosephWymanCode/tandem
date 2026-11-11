@@ -22,7 +22,7 @@ const update = (dueDate: unknown) => opSchema.safeParse({ type: 'card.update', i
 
 describe('due date schema', () => {
   it('accepts real calendar dates and null', () => {
-    for (const date of ['2026-11-14', '2028-02-29', '2026-12-31', '2027-01-01', null]) {
+    for (const date of ['2026-11-14', '2028-02-29', '2026-12-31', '2027-01-01', '1000-01-01', '9999-12-31', '2000-02-29', null]) {
       expect(update(date).success, String(date)).toBe(true);
     }
   });
@@ -30,6 +30,11 @@ describe('due date schema', () => {
   it('rejects dates that do not exist and anything not in YYYY-MM-DD form', () => {
     for (const date of [
       '2026-02-30',
+      '1900-02-29',
+      '0202-11-14',
+      '0050-01-01',
+      '2026-11-00',
+      '2026-11-31',
       '2027-02-29',
       '2026-13-01',
       '2026-00-10',

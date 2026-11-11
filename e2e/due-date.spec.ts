@@ -44,16 +44,19 @@ test('a due date shows on the card for everyone and is highlighted when overdue'
   await card(page, title).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Due date').fill(await dateFromToday(page, 14));
+  await dialog.getByLabel('Due date').press('Enter');
   await expect(badge(friend)).toBeVisible();
   await expect(badge(friend)).toContainText('Due');
   await expect(badge(friend)).not.toHaveClass(/due-overdue|due-soon/);
 
   // Tomorrow counts as due soon.
   await dialog.getByLabel('Due date').fill(await dateFromToday(page, 1));
+  await dialog.getByLabel('Due date').press('Enter');
   await expect(badge(friend)).toHaveClass(/due-soon/);
 
   // A date in the past is overdue.
   await dialog.getByLabel('Due date').fill(await dateFromToday(page, -3));
+  await dialog.getByLabel('Due date').press('Enter');
   await expect(badge(friend)).toHaveClass(/due-overdue/);
   await expect(badge(page)).toHaveClass(/due-overdue/);
   await expect(badge(friend)).toHaveAttribute('aria-label', /overdue$/);
@@ -64,8 +67,14 @@ test('a due date shows on the card for everyone and is highlighted when overdue'
   await expect(dialog.getByRole('button', { name: 'Remove due date' })).toHaveCount(0);
   await expect(badge(friend)).toHaveCount(0);
   await expect(badge(page)).toHaveCount(0);
+  await expect(dialog.getByLabel('Due date')).toBeFocused();
 
-  await dialog.getByRole('button', { name: 'Done' }).click();
+  // A date still being edited is saved when the dialog closes.
+  await dialog.getByLabel('Due date').fill(await dateFromToday(page, 30));
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(badge(friend)).toBeVisible();
+
   await page.getByRole('button', { name: 'Activity', exact: true }).click();
   await expect(page.getByLabel('Activity').getByText(`changed the due date of “${title}”`).first()).toBeVisible();
   await friend.context().close();

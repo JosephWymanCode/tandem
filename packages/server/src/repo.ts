@@ -101,7 +101,7 @@ export class Repo {
   createBoard(
     ownerId: string,
     title: string,
-    content: { columns: Column[]; cards: Omit<Card, 'assigneeId'>[] } = { columns: [], cards: [] },
+    content: { columns: Column[]; cards: Omit<Card, 'assigneeId' | 'dueDate'>[] } = { columns: [], cards: [] },
   ): string {
     const boardId = randomUUID();
     const now = Date.now();
@@ -212,6 +212,7 @@ export class Repo {
         description: row.description as string,
         labels: JSON.parse(row.labels as string) as Label[],
         assigneeId: row.assignee_id as string | null,
+        dueDate: (row.due_date as string | null) ?? null,
         pos: row.pos as string,
       };
     }
@@ -290,6 +291,9 @@ export class Repo {
             boardId,
             op.id,
           );
+        }
+        if (patch.dueDate !== undefined) {
+          db.prepare('UPDATE cards SET due_date = ? WHERE board_id = ? AND id = ?').run(patch.dueDate, boardId, op.id);
         }
         return;
       }

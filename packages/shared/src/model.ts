@@ -24,6 +24,8 @@ export interface Card {
   description: string;
   labels: Label[];
   assigneeId: string | null;
+  /** A calendar date in YYYY-MM-DD form, with no time zone. */
+  dueDate: string | null;
   pos: string;
 }
 
@@ -43,12 +45,27 @@ const pos = z
   .regex(/^[0-9A-Za-z]*[1-9A-Za-z]$/);
 const title = z.string().trim().min(1).max(LIMITS.titleLength);
 
+/**
+ * A real calendar date written as YYYY-MM-DD between the years 1000 and 9999,
+ * such as 2026-11-14 (2026-02-30 is rejected).
+ */
+export const dueDateSchema = z
+  .string()
+  .regex(/^[1-9]\d{3}-(0[1-9]|1[0-2])-\d{2}$/)
+  .refine((value) => {
+    const [year, month, day] = value.split('-').map(Number) as [number, number, number];
+    const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]!;
+    return day >= 1 && day <= daysInMonth;
+  }, 'Not a real calendar date');
+
 const cardPatch = z
   .object({
     title: title.optional(),
     description: z.string().max(LIMITS.descriptionLength).optional(),
     labels: z.array(z.enum(LABELS)).max(LABELS.length).optional(),
     assigneeId: id.nullable().optional(),
+    dueDate: dueDateSchema.nullable().optional(),
   })
   .strict()
   .refine((patch) => Object.keys(patch).length > 0, 'Patch is empty');
@@ -135,6 +152,7 @@ export function applyOp(state: BoardState, op: Op): ApplyResult {
         description: '',
         labels: [],
         assigneeId: null,
+        dueDate: null,
         pos: op.pos,
       };
       return { ok: true, state: { ...state, cards: { ...state.cards, [op.id]: card } } };
@@ -150,6 +168,7 @@ export function applyOp(state: BoardState, op: Op): ApplyResult {
       if (op.patch.description !== undefined) next.description = op.patch.description;
       if (op.patch.labels !== undefined) next.labels = [...new Set(op.patch.labels)];
       if (op.patch.assigneeId !== undefined) next.assigneeId = op.patch.assigneeId;
+      if (op.patch.dueDate !== undefined) next.dueDate = op.patch.dueDate;
       return { ok: true, state: { ...state, cards: { ...state.cards, [op.id]: next } } };
     }
 
@@ -219,6 +238,7 @@ export function describeOp(before: BoardState, op: Op): string {
         description: 'description',
         labels: 'labels',
         assigneeId: 'assignee',
+        dueDate: 'due date',
       };
       return `changed the ${fields.map((f) => names[f] ?? f).join(' and ')} of ${cardTitle(op.id)}`;
     }

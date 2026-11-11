@@ -1,0 +1,40 @@
+/* ---- Due dates ------------------------------------------------------------ */
+
+.due-date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.due-date-row input {
+  flex: 0 1 auto;
+}
+
+.due-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.card-meta > svg + .due-badge {
+  margin-left: 6px;
+}
+
+.due-badge.due-soon {
+  background: color-mix(in srgb, var(--sun) 35%, var(--card));
+  color: var(--ink);
+}
+
+.due-badge.due-overdue {
+  background: var(--danger);
+  color: #fff;
+}

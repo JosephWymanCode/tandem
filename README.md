@@ -8,7 +8,11 @@ A kanban board that several people can edit at the same time. Move a card and ev
 
 ## Try it
 
-Run it locally (Node 22.13 or newer):
+**Live demo: https://tandem-ykdf.onrender.com**
+
+Choose **Try it as a guest**, then use **Share** to copy the invite link and open it in a private window to appear as a second person. The demo runs on free hosting, so the first load can take up to a minute while it wakes, and its data is reset whenever the server restarts.
+
+Or run it locally (Node 22.13 or newer):
 
 ```bash
 npm install

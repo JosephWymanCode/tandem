@@ -1,5 +1,7 @@
 # Tandem
 
+[![CI](https://github.com/JosephWymanCode/tandem/actions/workflows/ci.yml/badge.svg)](https://github.com/JosephWymanCode/tandem/actions/workflows/ci.yml)
+
 A kanban board that several people can edit at the same time. Move a card and everyone else on the board sees it land, along with your cursor and which card you have open.
 
 ![Two people working on the same board, with the activity feed open](docs/board.png)

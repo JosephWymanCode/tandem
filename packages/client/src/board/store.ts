@@ -5,6 +5,7 @@ import {
   applyReject,
   applyRemote,
   createSync,
+  invertOp,
   type Activity,
   type BoardState,
   type ClientMsg,
@@ -17,6 +18,8 @@ import {
   type SyncState,
 } from '@tandem/shared';
 import { useComments } from './comments';
+import { createOutbox } from './outbox';
+import { dropRejected, emptyHistory, recordChange, recordStep, takeStep, type History } from './history';
 
 export type ConnectionStatus = 'connecting' | 'live' | 'reconnecting' | 'closed';
 export type ClosedReason = 'signed-out' | 'forbidden' | 'not-found';
@@ -38,6 +41,11 @@ interface BoardStore {
   connect: (boardId: string) => void;
   disconnect: () => void;
   dispatch: (op: Op) => boolean;
+  /** Whether the person has a change of their own to undo or redo. */
+  canUndo: boolean;
+  canRedo: boolean;
+  undo: () => void;
+  redo: () => void;
   setCursor: (cursor: Cursor | null) => void;
   setEditing: (cardId: string | null) => void;
   clearNotice: () => void;
@@ -58,6 +66,8 @@ const initial = {
   inviteToken: null,
   activity: [],
   notice: null,
+  canUndo: false,
+  canRedo: false,
 };
 
 // Connection state lives outside the store: components never need to render from it.
@@ -71,6 +81,7 @@ let editing: string | null = null;
 let lastCursorSent = 0;
 let cursorTimer: ReturnType<typeof setTimeout> | undefined;
 let queuedCursor: Cursor | null | undefined;
+let history: History = emptyHistory;
 
 export const useBoard = create<BoardStore>((set, get) => {
   const publish = () => set({ board: sync?.view ?? null, pendingCount: sync?.pending.length ?? 0 });
@@ -78,6 +89,7 @@ export const useBoard = create<BoardStore>((set, get) => {
   const send = (msg: ClientMsg) => {
     if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(msg));
   };
+  const outbox = createOutbox(send);
 
   const toActivity = (event: OpEvent): Activity => ({
     seq: event.seq,
@@ -109,7 +121,8 @@ export const useBoard = create<BoardStore>((set, get) => {
     // Anything the server never acknowledged is sent again. Operations are
     // safe to repeat: a second "add" of the same card is refused, and moves
     // and edits simply land on the same value.
-    for (const item of sync?.pending ?? []) send({ t: 'op', ...item });
+    outbox.clear();
+    for (const item of sync?.pending ?? []) outbox.push({ t: 'op', ...item });
     if (editing) send({ t: 'presence', editing });
     set({
       status: 'live',
@@ -148,6 +161,7 @@ export const useBoard = create<BoardStore>((set, get) => {
       case 'reject':
         if (!sync) return;
         sync = applyReject(sync, msg.cid);
+        setHistory(dropRejected(history, msg.cid));
         set({ notice: `Your change was undone. ${msg.reason}.` });
         publish();
         return;
@@ -206,6 +220,7 @@ export const useBoard = create<BoardStore>((set, get) => {
     ws.onclose = (event) => {
       if (socket !== ws) return;
       socket = null;
+      outbox.clear();
       const reasons: Record<number, ClosedReason> = {
         [CLOSE.unauthenticated]: 'signed-out',
         [CLOSE.forbidden]: 'forbidden',
@@ -222,6 +237,36 @@ export const useBoard = create<BoardStore>((set, get) => {
       attempts++;
       retryTimer = setTimeout(open, delay);
     };
+  };
+
+  const setHistory = (next: History) => {
+    history = next;
+    set({ canUndo: history.undo.length > 0, canRedo: history.redo.length > 0 });
+  };
+
+  /** Applies one operation locally and sends it. Returns its id, or null if it is not valid right now. */
+  const run = (op: Op): string | null => {
+    if (!sync) return null;
+    const item = { cid: crypto.randomUUID(), op };
+    const next = applyLocal(sync, item);
+    if (!next) return null;
+    sync = next;
+    publish();
+    // If we are offline the change waits in `pending` and goes out on reconnect.
+    outbox.push({ t: 'op', ...item });
+    return item.cid;
+  };
+
+  /** Takes the newest step off one history stack and records its reverse on the other. */
+  const travel = (from: keyof History) => {
+    if (!sync) return;
+    const { stack, step } = takeStep(sync.view, history[from]);
+    let next: History = { ...history, [from]: stack };
+    if (step) {
+      const cids = step.apply.map(run).filter((cid): cid is string => cid !== null);
+      next = recordStep(next, from === 'undo' ? 'redo' : 'undo', { ops: step.inverse, cids });
+    }
+    setHistory(next);
   };
 
   if (typeof window !== 'undefined') {
@@ -254,22 +299,24 @@ export const useBoard = create<BoardStore>((set, get) => {
       sync = null;
       editing = null;
       attempts = 0;
+      history = emptyHistory;
+      outbox.clear();
       ws?.close();
       set({ ...initial });
       useComments.getState().reset();
     },
 
     dispatch: (op) => {
-      if (!sync) return false;
-      const item = { cid: crypto.randomUUID(), op };
-      const next = applyLocal(sync, item);
-      if (!next) return false;
-      sync = next;
-      publish();
-      // If we are offline the change waits in `pending` and goes out on reconnect.
-      send({ t: 'op', ...item });
+      // The way back is worked out from the board as it is just before the change.
+      const inverse = sync ? invertOp(sync.view, op) : null;
+      const cid = run(op);
+      if (!cid) return false;
+      setHistory(recordChange(history, { ops: inverse ?? [], cids: [cid] }));
       return true;
     },
+
+    undo: () => travel('undo'),
+    redo: () => travel('redo'),
 
     setCursor: (cursor) => {
       // Cursor updates are frequent and disposable, so only the latest one in each interval is sent.

@@ -1,0 +1,14 @@
+.undo-buttons {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.undo-buttons .button {
+  padding-inline: 0.7rem;
+}
+
+/* A disabled quiet button should not light up on hover. */
+.undo-buttons .button-quiet:disabled:hover {
+  background: none;
+  color: var(--ink-soft);
+}

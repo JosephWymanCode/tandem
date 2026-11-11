@@ -5,6 +5,7 @@ import { Canvas } from '../board/Canvas';
 import { CardDialog } from '../board/CardDialog';
 import { FilterBar } from '../board/FilterBar';
 import { useBoard, type ConnectionStatus } from '../board/store';
+import { UndoButtons } from '../board/UndoButtons';
 import { Avatar, Wordmark } from '../components/Avatar';
 import { useSession } from '../session';
 
@@ -257,6 +258,7 @@ export function BoardPage() {
         <Status status={status} pending={pendingCount} />
         <FilterBar key={board.id} members={members} />
         <div className="board-bar-end">
+          <UndoButtons />
           <People members={members} peers={peerList} you={user.id} />
           <button className="button button-quiet" aria-pressed={showActivity} onClick={() => setShowActivity((v) => !v)}>
             Activity

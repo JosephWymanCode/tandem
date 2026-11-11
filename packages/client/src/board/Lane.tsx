@@ -8,6 +8,8 @@ import { useBoard } from './store';
 interface LaneProps {
   column: Column;
   cardIds: string[];
+  /** Every card in the column, when a filter is hiding some of them from `cardIds`. */
+  allCardIds?: string[];
   board: BoardState;
   members: Member[];
   editors: Record<string, Peer>;
@@ -94,7 +96,9 @@ function AddCard({ column, lastPos }: { column: Column; lastPos: string | null }
   );
 }
 
-export function Lane({ column, cardIds, board, members, editors, onOpenCard }: LaneProps) {
+export function Lane({ column, cardIds: shownIds, allCardIds, board, members, editors, onOpenCard }: LaneProps) {
+  // Counts, deleting and adding at the end are about the whole column, not just what a filter shows.
+  const cardIds = allCardIds ?? shownIds;
   const dispatch = useBoard((state) => state.dispatch);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column.id,
@@ -144,8 +148,15 @@ export function Lane({ column, cardIds, board, members, editors, onOpenCard }: L
             }}
           />
         )}
-        <span className="lane-count" aria-label={`${cardIds.length} cards`}>
-          {cardIds.length}
+        <span
+          className="lane-count"
+          aria-label={
+            shownIds.length === cardIds.length
+              ? `${cardIds.length} cards`
+              : `${shownIds.length} of ${cardIds.length} cards shown`
+          }
+        >
+          {shownIds.length === cardIds.length ? cardIds.length : `${shownIds.length} of ${cardIds.length}`}
         </span>
         <button
           className="lane-delete"
@@ -175,9 +186,9 @@ export function Lane({ column, cardIds, board, members, editors, onOpenCard }: L
         </div>
       )}
 
-      <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+      <SortableContext items={shownIds} strategy={verticalListSortingStrategy}>
         <div className="lane-cards">
-          {cardIds.map((id) => {
+          {shownIds.map((id) => {
             const card = board.cards[id];
             if (!card) return null;
             return (

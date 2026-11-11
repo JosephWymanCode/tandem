@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { Activity, Member, Peer } from '@tandem/shared';
 import { Canvas } from '../board/Canvas';
 import { CardDialog } from '../board/CardDialog';
+import { FilterBar } from '../board/FilterBar';
 import { useBoard, type ConnectionStatus } from '../board/store';
 import { Avatar, Wordmark } from '../components/Avatar';
 import { useSession } from '../session';
@@ -254,6 +255,7 @@ export function BoardPage() {
         </Link>
         <BoardTitle title={board.title} />
         <Status status={status} pending={pendingCount} />
+        <FilterBar key={board.id} members={members} />
         <div className="board-bar-end">
           <People members={members} peers={peerList} you={user.id} />
           <button className="button button-quiet" aria-pressed={showActivity} onClick={() => setShowActivity((v) => !v)}>

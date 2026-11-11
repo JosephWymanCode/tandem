@@ -4,6 +4,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import '@fontsource-variable/bricolage-grotesque';
 import '@fontsource-variable/instrument-sans';
 import './styles.css';
+import './theme.css';
+import { startTheme } from './themeStore';
 import { useSession } from './session';
 import { Home } from './pages/Home';
 import { Boards } from './pages/Boards';
@@ -32,6 +34,8 @@ function App() {
     </Routes>
   );
 }
+
+startTheme();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

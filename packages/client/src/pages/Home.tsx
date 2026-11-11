@@ -1,6 +1,7 @@
 import { AuthPanel } from '../components/AuthPanel';
 import { Wordmark } from '../components/Avatar';
 import { HeroDemo } from '../components/HeroDemo';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export function Home() {
   return (
@@ -20,6 +21,7 @@ export function Home() {
           Open your board in two windows to see it for yourself, or share the invite link with someone.
         </p>
       </section>
+      <ThemeToggle corner />
     </main>
   );
 }

@@ -7,6 +7,7 @@ import { FilterBar } from '../board/FilterBar';
 import { useBoard, type ConnectionStatus } from '../board/store';
 import { UndoButtons } from '../board/UndoButtons';
 import { Avatar, Wordmark } from '../components/Avatar';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { useSession } from '../session';
 
 function useNow(intervalMs: number): number {
@@ -260,6 +261,7 @@ export function BoardPage() {
         <div className="board-bar-end">
           <UndoButtons />
           <People members={members} peers={peerList} you={user.id} />
+          <ThemeToggle />
           <button className="button button-quiet" aria-pressed={showActivity} onClick={() => setShowActivity((v) => !v)}>
             Activity
           </button>

@@ -81,6 +81,7 @@ export function openDb(path: string): Db {
   db.exec('PRAGMA journal_mode = WAL');
   db.exec('PRAGMA foreign_keys = ON');
   db.exec(SCHEMA);
+  addColumnIfMissing(db, 'cards', 'due_date', 'TEXT');
   return db;
 }
 

@@ -61,7 +61,7 @@ const SEED: { title: string; cards: SeedCard[] }[] = [
 /** Gives a new user a board that explains itself, so nobody lands on an empty screen. */
 export function createStarterBoard(repo: Repo, ownerId: string): string {
   const columns: Column[] = [];
-  const cards: Omit<Card, 'assigneeId'>[] = [];
+  const cards: Omit<Card, 'assigneeId' | 'dueDate'>[] = [];
   const columnKeys = initialKeys(SEED.length);
 
   SEED.forEach((seedColumn, columnIndex) => {

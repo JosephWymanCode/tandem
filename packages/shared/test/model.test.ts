@@ -18,8 +18,8 @@ function board(): BoardState {
       done: { id: 'done', title: 'Done', pos: 'V' },
     },
     cards: {
-      c1: { id: 'c1', columnId: 'todo', title: 'First', description: '', labels: [], assigneeId: null, pos: 'G' },
-      c2: { id: 'c2', columnId: 'todo', title: 'Second', description: '', labels: [], assigneeId: null, pos: 'V' },
+      c1: { id: 'c1', columnId: 'todo', title: 'First', description: '', labels: [], assigneeId: null, dueDate: null, pos: 'G' },
+      c2: { id: 'c2', columnId: 'todo', title: 'Second', description: '', labels: [], assigneeId: null, dueDate: null, pos: 'V' },
     },
   };
 }

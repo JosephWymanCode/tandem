@@ -16,6 +16,7 @@ import {
   type ServerMsg,
   type SyncState,
 } from '@tandem/shared';
+import { useComments } from './comments';
 
 export type ConnectionStatus = 'connecting' | 'live' | 'reconnecting' | 'closed';
 export type ClosedReason = 'signed-out' | 'forbidden' | 'not-found';
@@ -118,6 +119,7 @@ export const useBoard = create<BoardStore>((set, get) => {
       you: msg.you,
       inviteToken: msg.inviteToken,
     });
+    useComments.getState().handshake(msg.commentCounts);
     publish();
   };
 
@@ -173,6 +175,14 @@ export const useBoard = create<BoardStore>((set, get) => {
 
       case 'members':
         set({ members: msg.members });
+        return;
+
+      case 'comment.added':
+        useComments.getState().added(msg.comment, true);
+        return;
+
+      case 'comment.deleted':
+        useComments.getState().removed(msg.cardId, msg.commentId, true);
         return;
 
       case 'pong':
@@ -246,6 +256,7 @@ export const useBoard = create<BoardStore>((set, get) => {
       attempts = 0;
       ws?.close();
       set({ ...initial });
+      useComments.getState().reset();
     },
 
     dispatch: (op) => {

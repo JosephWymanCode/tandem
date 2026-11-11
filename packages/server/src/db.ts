@@ -71,6 +71,20 @@ CREATE TABLE IF NOT EXISTS ops (
   at        INTEGER NOT NULL,
   PRIMARY KEY (board_id, seq)
 );
+
+-- Comments hang off their card, so deleting the card (directly, or through
+-- its column or board) removes them.
+CREATE TABLE IF NOT EXISTS comments (
+  id          TEXT PRIMARY KEY,
+  board_id    TEXT NOT NULL,
+  card_id     TEXT NOT NULL,
+  author_id   TEXT NOT NULL,
+  author_name TEXT NOT NULL,
+  body        TEXT NOT NULL,
+  created_at  INTEGER NOT NULL,
+  FOREIGN KEY (board_id, card_id) REFERENCES cards(board_id, id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS comments_card ON comments(board_id, card_id);
 `;
 
 export type Db = DatabaseSync;

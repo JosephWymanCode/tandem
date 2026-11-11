@@ -3,6 +3,8 @@ import { CSS } from '@dnd-kit/utilities';
 import type { Card, Member, Peer } from '@tandem/shared';
 import { Avatar } from '../components/Avatar';
 import { DueBadge } from './DueBadge';
+import { CommentCount } from './CommentCount';
+import { useCommentCount } from './comments';
 
 interface CardFaceProps {
   card: Card;
@@ -13,6 +15,7 @@ interface CardFaceProps {
 
 /** What a card looks like. Used in the column and as the picture that follows the pointer while dragging. */
 export function CardFace({ card, assignee, editor }: CardFaceProps) {
+  const commentCount = useCommentCount(card.id);
   return (
     <>
       {card.labels.length > 0 && (
@@ -23,13 +26,14 @@ export function CardFace({ card, assignee, editor }: CardFaceProps) {
         </span>
       )}
       <span className="card-title">{card.title}</span>
-      {(card.description || card.dueDate || assignee) && (
+      {(card.description || commentCount > 0 || card.dueDate || assignee) && (
         <span className="card-meta">
           {card.description && (
             <svg width="16" height="16" viewBox="0 0 16 16" aria-label="Has a description" role="img">
               <path d="M2 4h12M2 8h12M2 12h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           )}
+          {commentCount > 0 && <CommentCount count={commentCount} />}
           {card.dueDate && <DueBadge date={card.dueDate} />}
           {assignee && <Avatar name={assignee.name} color={assignee.color} size={22} />}
         </span>

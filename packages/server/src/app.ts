@@ -6,6 +6,7 @@ import { WebSocketServer } from 'ws';
 import { z } from 'zod';
 import { CLOSE, LIMITS, initialKeys } from '@tandem/shared';
 import { randomUUID } from 'node:crypto';
+import { registerCommentRoutes } from './comments';
 import { RateLimiter, guestName, hashPassword, readCookie, verifyPassword } from './auth';
 import { openDb } from './db';
 import { Repo, type User } from './repo';
@@ -186,6 +187,8 @@ export async function buildApp(options: AppOptions) {
     if (repo.addMember(board.id, user.id)) rooms.membersChanged(board.id);
     return { boardId: board.id };
   });
+
+  registerCommentRoutes(app, { repo, rooms, requireUser });
 
   // ---- Live boards --------------------------------------------------------
 

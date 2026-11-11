@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LABELS, type Card, type Label, type Member, type Peer } from '@tandem/shared';
 import { useBoard } from './store';
 import { DueDateField } from './DueDateField';
+import { CommentThread } from './CommentThread';
 
 const LABEL_NAMES: Record<Label, string> = {
   red: 'Red',
@@ -152,6 +153,8 @@ export function CardDialog({
         </label>
 
         <DueDateField card={card} />
+
+        <CommentThread cardId={card.id} />
 
         <div className="dialog-actions">
           {confirming ? (

@@ -85,6 +85,7 @@ class Room {
       members: this.repo.listMembers(this.boardId),
       peers: [...this.conns.values()].filter((other) => other !== conn).map(toPeer),
       inviteToken: this.inviteToken,
+      commentCounts: this.repo.commentCounts(this.boardId),
     };
 
     // A client that was only briefly away gets just the operations it missed.
@@ -243,6 +244,11 @@ export class RoomManager {
 
   membersChanged(boardId: string): void {
     this.rooms.get(boardId)?.sendMembers();
+  }
+
+  /** Sends a message to everyone who has the board open. */
+  broadcast(boardId: string, msg: ServerMsg): void {
+    this.rooms.get(boardId)?.broadcast(msg);
   }
 
   closeBoard(boardId: string): void {

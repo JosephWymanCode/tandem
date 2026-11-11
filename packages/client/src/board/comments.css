@@ -1,0 +1,118 @@
+/* ---- Comments ------------------------------------------------------------ */
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.comments-heading {
+  margin: 0;
+  font-size: 0.93rem;
+  font-weight: 600;
+}
+
+.comments-empty {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comment {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+}
+
+.comment-author {
+  font-weight: 700;
+}
+
+.comment-head time {
+  color: var(--ink-soft);
+}
+
+.comment-delete {
+  margin-left: auto;
+  padding: 0.1rem 0.35rem;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.comment-delete:hover {
+  color: var(--danger);
+}
+
+.comment-delete:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.comment-confirm {
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+
+.comment-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.comment-form .button {
+  align-self: flex-end;
+}
+
+.comment-form .button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.comment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+/* The due date, when there is one, takes the slack after the count instead. */
+.comment-count:has(+ .due-badge) {
+  margin-right: 6px;
+}
+
+.card-meta > * + .comment-count {
+  margin-left: 6px;
+}

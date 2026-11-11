@@ -84,6 +84,17 @@ export function openDb(path: string): Db {
   return db;
 }
 
+/**
+ * Adds a column to an existing table unless it is already there. New columns
+ * go through this (called from `openDb` after the schema) so databases created
+ * by an older version pick them up.
+ */
+export function addColumnIfMissing(db: Db, table: string, column: string, definition: string): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (columns.some((existing) => existing.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
 /** Runs `fn` inside a transaction, rolling back if it throws. */
 export function transaction<T>(db: Db, fn: () => T): T {
   db.exec('BEGIN IMMEDIATE');

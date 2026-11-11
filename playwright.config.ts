@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
-const port = 3210;
+// Set E2E_PORT to run several checkouts side by side without sharing a server.
+const port = Number(process.env.E2E_PORT ?? 3210);
 
 // The end-to-end tests run against the production build: one server that
 // serves the API, the WebSocket and the built frontend, with a throwaway database.
@@ -17,7 +18,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm start',
     url: `http://localhost:${port}/api/health`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && !process.env.E2E_PORT,
     timeout: 120_000,
     env: { PORT: String(port), DATABASE_PATH: ':memory:', AUTH_RATE_LIMIT: '1000' },
   },

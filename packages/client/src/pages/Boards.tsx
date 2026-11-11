@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, type BoardSummary } from '../api';
 import { Avatar, Wordmark } from '../components/Avatar';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { useSession } from '../session';
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -56,6 +57,7 @@ export function Boards() {
       <header className="page-bar">
         <Wordmark />
         <div className="page-bar-user">
+          <ThemeToggle />
           <Avatar name={user.name} color={user.color} />
           <span>{user.name}</span>
           <button className="button button-quiet" onClick={() => void logout()}>

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { AuthPanel } from '../components/AuthPanel';
 import { Wordmark } from '../components/Avatar';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { useSession } from '../session';
 
 export function Join() {
@@ -42,6 +43,7 @@ export function Join() {
   return (
     <main className="join">
       <Wordmark />
+      <ThemeToggle corner />
       {error ? (
         <>
           <h1>This invite can’t be used</h1>

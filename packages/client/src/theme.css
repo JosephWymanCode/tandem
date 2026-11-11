@@ -1,0 +1,91 @@
+/*
+ * Dark theme. The light theme is the default set of tokens in styles.css; this file only overrides them.
+ * public/theme-init.js sets data-theme on <html> before the first paint ("System" resolves through
+ * prefers-color-scheme there and in themeStore.ts).
+ *
+ * Surfaces are deep petrol, each a step lighter: page, lane, card, then raised surfaces like the toast.
+ * Contrast against the card surface (the lightest place text sits): ink 10.4:1, ink-soft 5.8:1,
+ * danger 5.0:1, focus 4.8:1; saffron keeps dark text on it (8.8:1).
+ */
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --paper: #0f1d22;
+  --lane: #172a31;
+  --card: #20363e;
+  --ink: #e3ebe7;
+  --ink-soft: #9fb3b1;
+  --line: #36505a;
+  --sun: #f5b81c;
+  --sun-deep: #ffc94a;
+  --danger: #ff7b6e;
+  --live: #3dd68c;
+  --focus: #7b9bff;
+
+  --label-red: #ff6369;
+  --label-amber: #ffb224;
+  --label-green: #3dd68c;
+  --label-teal: #0ac5b3;
+  --label-blue: #7b9bff;
+  --label-violet: #b47ff0;
+
+  --on-sun: #13262d;
+  --on-danger: #13262d;
+  --strong: #e3ebe7;
+  --strong-hover: #c6d4cf;
+  --on-strong: #0f1d22;
+  --stage: #0a1519;
+  --stage-ink: #b8c7c4;
+  --toast: #2a434c;
+  --on-toast: #edf1ee;
+  --error-paper: #3d211f;
+  --error-ink: #ffb4a9;
+  --shade: 0, 0, 0;
+  --tint: 227, 235, 231;
+}
+
+/* Cards sit on lanes of nearly the same darkness, so give them an edge instead of a drop line. */
+:root[data-theme='dark'] .card,
+:root[data-theme='dark'] .demo-card {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme='dark'] .card:hover {
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/*
+ * Person colours are stored per account and shared by both themes. A few (blue, violet) are close in
+ * lightness to the dark lanes, so the "being edited" ring gets a light halo to stay visible.
+ */
+:root[data-theme='dark'] .card.is-edited {
+  box-shadow: 0 0 0 4px rgba(var(--tint), 0.35);
+}
+
+/* The looping demo is drawn on the darker stage; lift it with a hairline instead of a shadow. */
+:root[data-theme='dark'] .demo {
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 30px 60px -20px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-theme='dark'] .card.is-overlay {
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 14px 26px -8px rgba(0, 0, 0, 0.7);
+}
+
+:root[data-theme='dark'] .dialog {
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 30px 70px -20px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-theme='dark'] .dialog::backdrop {
+  background: rgba(3, 9, 11, 0.7);
+}

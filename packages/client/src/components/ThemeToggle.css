@@ -1,0 +1,52 @@
+/* ---- Theme switch ------------------------------------------------------ */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.theme-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.theme-toggle select {
+  width: auto;
+  padding: 0.3rem 0.5rem;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+/* On pages without a top bar it sits quietly in the corner. */
+.theme-toggle-corner {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+  padding: 0.25rem 0.25rem 0.25rem 0.6rem;
+  border-radius: 10px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+@media (max-width: 540px) {
+  /* The board bar gains a control, so let its end group wrap on phones. */
+  .board-bar-end:has(.theme-toggle) {
+    flex-wrap: wrap;
+    row-gap: 0.4rem;
+  }
+
+  .theme-toggle-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

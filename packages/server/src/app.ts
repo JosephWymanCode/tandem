@@ -14,6 +14,7 @@ import { Repo, type User } from './repo';
 import { RoomManager } from './rooms';
 import { createStarterBoard } from './seed';
 import { registerUpgrade } from './upgrade';
+import { registerTransferRoutes } from './transfer';
 
 export interface AppOptions {
   dbPath: string;
@@ -174,6 +175,8 @@ export async function buildApp(options: AppOptions) {
     rooms.closeBoard(request.params.id);
     return { ok: true };
   });
+
+  registerTransferRoutes(app, { repo, requireUser });
 
   // ---- Invites ------------------------------------------------------------
 

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, type BoardSummary } from '../api';
 import { Avatar, Wordmark } from '../components/Avatar';
+import { ExportBoard, ImportBoard } from '../components/BoardTransfer';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { UpgradeAccount } from '../components/UpgradeAccount';
 import { useSession } from '../session';
@@ -88,6 +89,8 @@ export function Boards() {
           </div>
         </form>
 
+        <ImportBoard />
+
         {error && (
           <p className="form-error" role="alert">
             {error}
@@ -108,6 +111,7 @@ export function Boards() {
                   {board.role === 'member' && ', shared with you'}
                 </span>
               </Link>
+              <ExportBoard boardId={board.id} title={board.title} />
               {board.role === 'owner' &&
                 (confirming === board.id ? (
                   <span className="confirm">

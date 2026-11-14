@@ -55,6 +55,8 @@ export const api = {
   boards: () => request<{ boards: BoardSummary[] }>('GET', '/api/boards'),
   createBoard: (title: string) => request<{ boardId: string }>('POST', '/api/boards', { title }),
   deleteBoard: (id: string) => request<{ ok: true }>('DELETE', `/api/boards/${id}`),
+  importBoard: (document: unknown) => request<{ boardId: string }>('POST', '/api/boards/import', document),
+  exportUrl: (id: string, format: 'json' | 'csv') => `/api/boards/${encodeURIComponent(id)}/export?format=${format}`,
   invite: (token: string) => request<{ title: string }>('GET', `/api/invites/${token}`),
   join: (token: string) => request<{ boardId: string }>('POST', `/api/invites/${token}/join`),
   comments: (boardId: string, cardId: string) =>

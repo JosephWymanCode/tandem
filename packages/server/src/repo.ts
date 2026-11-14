@@ -129,7 +129,10 @@ export class Repo {
   createBoard(
     ownerId: string,
     title: string,
-    content: { columns: Column[]; cards: Omit<Card, 'assigneeId' | 'dueDate'>[] } = { columns: [], cards: [] },
+    content: { columns: Column[]; cards: (Omit<Card, 'assigneeId' | 'dueDate'> & Partial<Pick<Card, 'dueDate'>>)[] } = {
+      columns: [],
+      cards: [],
+    },
   ): string {
     const boardId = randomUUID();
     const now = Date.now();
@@ -143,7 +146,7 @@ export class Repo {
       const insertColumn = this.db.prepare('INSERT INTO columns (board_id, id, title, pos) VALUES (?, ?, ?, ?)');
       for (const column of content.columns) insertColumn.run(boardId, column.id, column.title, column.pos);
       const insertCard = this.db.prepare(
-        'INSERT INTO cards (board_id, id, column_id, title, description, labels, pos) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO cards (board_id, id, column_id, title, description, labels, due_date, pos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       );
       for (const card of content.cards) {
         insertCard.run(
@@ -153,6 +156,7 @@ export class Repo {
           card.title,
           card.description,
           JSON.stringify(card.labels),
+          card.dueDate ?? null,
           card.pos,
         );
       }

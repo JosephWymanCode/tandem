@@ -34,7 +34,9 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 type Row = Record<string, string | number | null>;
 
-const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
+const SQLITE_CONSTRAINT_UNIQUE = 2067;
+
+const hashToken =(token: string) => createHash('sha256').update(token).digest('hex');
 
 function toUser(row: Row): User {
   return {
@@ -71,6 +73,32 @@ export class Repo {
   findUserByEmail(email: string): (User & { passwordHash: string | null }) | null {
     const row = this.db.prepare('SELECT * FROM users WHERE email = ?').get(email) as Row | undefined;
     return row ? { ...toUser(row), passwordHash: row.password_hash as string | null } : null;
+  }
+
+  /**
+   * Turns a guest into a full account without changing the user id. Only a row
+   * that is still a guest is touched, so a second attempt changes nothing. The
+   * guest's sessions are all ended, so the caller must start a fresh one.
+   */
+  upgradeGuest(
+    userId: string,
+    input: { email: string; name: string; passwordHash: string },
+  ): User | 'email-taken' | 'not-guest' {
+    try {
+      return transaction(this.db, () => {
+        const { changes } = this.db
+          .prepare('UPDATE users SET email = ?, name = ?, password_hash = ?, is_guest = 0 WHERE id = ? AND is_guest = 1')
+          .run(input.email, input.name, input.passwordHash, userId);
+        if (Number(changes) === 0) return 'not-guest' as const;
+        this.db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
+        return toUser(this.db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as Row);
+      });
+    } catch (error) {
+      // Another request took the email between the check and this write. The
+      // update changes only one unique column, so a unique failure means the email.
+      if ((error as { errcode?: unknown }).errcode === SQLITE_CONSTRAINT_UNIQUE) return 'email-taken';
+      throw error;
+    }
   }
 
   /** Returns the raw session token. Only its hash is stored, so a leaked database cannot be used to log in. */

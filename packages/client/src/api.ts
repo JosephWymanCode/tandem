@@ -48,6 +48,8 @@ export const api = {
   signup: (input: { name: string; email: string; password: string }) =>
     request<{ user: User; boardId: string }>('POST', '/api/auth/signup', input),
   login: (input: { email: string; password: string }) => request<{ user: User }>('POST', '/api/auth/login', input),
+  upgrade: (input: { name: string; email: string; password: string }) =>
+    request<{ user: User }>('POST', '/api/auth/upgrade', input),
   guest: () => request<{ user: User; boardId: string }>('POST', '/api/auth/guest'),
   logout: () => request<{ ok: true }>('POST', '/api/auth/logout'),
   boards: () => request<{ boards: BoardSummary[] }>('GET', '/api/boards'),

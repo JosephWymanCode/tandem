@@ -1,0 +1,34 @@
+.upgrade {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--sun);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.upgrade h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.upgrade > p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.upgrade-form {
+  max-width: 24rem;
+  margin-top: 0.4rem;
+}
+
+.upgrade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

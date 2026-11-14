@@ -116,6 +116,20 @@ class Room {
     this.broadcast({ t: 'peer.leave', connId: conn.id });
   }
 
+  /**
+   * Swaps in fresh details for a person's open connections and shows everyone
+   * the change: their live cursor label and, if they are on this board, the member list.
+   */
+  updateUser(user: User): void {
+    for (const conn of this.conns.values()) {
+      if (conn.user.id !== user.id) continue;
+      conn.user = user;
+      // Clients keep peers by connection id, so a repeated join replaces the old entry.
+      this.broadcast({ t: 'peer.join', peer: toPeer(conn) }, conn);
+    }
+    if (this.repo.getRole(this.boardId, user.id) !== null) this.sendMembers();
+  }
+
   sendMembers(): void {
     this.broadcast({ t: 'members', members: this.repo.listMembers(this.boardId) });
   }
@@ -267,6 +281,11 @@ export class RoomManager {
       if (active.conns.size === 0 && this.rooms.get(boardId) === active) this.rooms.delete(boardId);
     });
     ws.on('error', () => ws.terminate());
+  }
+
+  /** A person's name or account details changed: refresh them on every connection they have open. */
+  userChanged(user: User): void {
+    for (const room of this.rooms.values()) room.updateUser(user);
   }
 
   membersChanged(boardId: string): void {

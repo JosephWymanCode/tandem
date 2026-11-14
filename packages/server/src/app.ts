@@ -13,6 +13,7 @@ import { openDb } from './db';
 import { Repo, type User } from './repo';
 import { RoomManager } from './rooms';
 import { createStarterBoard } from './seed';
+import { registerUpgrade } from './upgrade';
 
 export interface AppOptions {
   dbPath: string;
@@ -139,6 +140,8 @@ export async function buildApp(options: AppOptions) {
     reply.clearCookie(SESSION_COOKIE, { path: '/' });
     return { ok: true };
   });
+
+  registerUpgrade(app, { repo, rooms, body: signupBody, currentUser, limited, startSession });
 
   // ---- Boards -------------------------------------------------------------
 

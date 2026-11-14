@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api, type BoardSummary } from '../api';
 import { Avatar, Wordmark } from '../components/Avatar';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { UpgradeAccount } from '../components/UpgradeAccount';
 import { useSession } from '../session';
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -68,6 +69,8 @@ export function Boards() {
 
       <main className="boards">
         <h1>Your boards</h1>
+
+        {user.isGuest && <UpgradeAccount user={user} />}
 
         <form className="new-board" onSubmit={(event) => void create(event)}>
           <label htmlFor="new-board-title">New board</label>

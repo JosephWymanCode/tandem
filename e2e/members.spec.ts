@@ -15,7 +15,7 @@ async function openShare(page: Page) {
 /** Opens the first person's board in a separate browser profile, joined through the invite link. */
 async function inviteFriend(browser: Browser, page: Page) {
   const dialog = await openShare(page);
-  const link = await dialog.getByLabel('Invite link').inputValue();
+  const link = await dialog.getByLabel('Invite link', { exact: true }).inputValue();
   await dialog.getByRole('button', { name: 'Done' }).click();
 
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -72,16 +72,16 @@ test('resetting the invite link changes the link and retires the old one', async
   const friend = await inviteFriend(browser, page);
 
   const dialog = await openShare(page);
-  const oldLink = await dialog.getByLabel('Invite link').inputValue();
+  const oldLink = await dialog.getByLabel('Invite link', { exact: true }).inputValue();
   await dialog.getByRole('button', { name: 'Reset invite link' }).click();
   await expect(dialog.getByText('The current link will stop working at once.')).toBeVisible();
   await dialog.getByRole('button', { name: 'Reset link' }).click();
-  await expect(dialog.getByLabel('Invite link')).not.toHaveValue(oldLink);
-  const newLink = await dialog.getByLabel('Invite link').inputValue();
+  await expect(dialog.getByLabel('Invite link', { exact: true })).not.toHaveValue(oldLink);
+  const newLink = await dialog.getByLabel('Invite link', { exact: true }).inputValue();
 
   // People already on the board see the new link too.
   const friendDialog = await openShare(friend);
-  await expect(friendDialog.getByLabel('Invite link')).toHaveValue(newLink);
+  await expect(friendDialog.getByLabel('Invite link', { exact: true })).toHaveValue(newLink);
 
   const stranger = await browser.newContext().then((context) => context.newPage());
   await stranger.goto(oldLink);

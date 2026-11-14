@@ -191,6 +191,10 @@ export const useBoard = create<BoardStore>((set, get) => {
         set({ members: msg.members });
         return;
 
+      case 'invite':
+        set({ inviteToken: msg.inviteToken });
+        return;
+
       case 'comment.added':
         useComments.getState().added(msg.comment, true);
         return;

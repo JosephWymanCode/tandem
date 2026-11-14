@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { CLOSE, LIMITS, initialKeys } from '@tandem/shared';
 import { randomUUID } from 'node:crypto';
 import { registerCommentRoutes } from './comments';
+import { registerMemberRoutes } from './members';
 import { RateLimiter, guestName, hashPassword, readCookie, verifyPassword } from './auth';
 import { openDb } from './db';
 import { Repo, type User } from './repo';
@@ -189,6 +190,7 @@ export async function buildApp(options: AppOptions) {
   });
 
   registerCommentRoutes(app, { repo, rooms, requireUser });
+  registerMemberRoutes(app, { repo, rooms, requireUser });
 
   // ---- Live boards --------------------------------------------------------
 

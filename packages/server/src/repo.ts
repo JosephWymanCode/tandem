@@ -189,6 +189,21 @@ export class Repo {
     return result.changes > 0;
   }
 
+  /** Removes a member who is not the owner. Returns true if someone was removed. */
+  removeMember(boardId: string, userId: string): boolean {
+    const result = this.db
+      .prepare("DELETE FROM board_members WHERE board_id = ? AND user_id = ? AND role = 'member'")
+      .run(boardId, userId);
+    return result.changes > 0;
+  }
+
+  /** Replaces the board's invite token, so the old link stops working, and returns the new one. */
+  resetInviteToken(boardId: string): string {
+    const token = randomBytes(12).toString('base64url');
+    this.db.prepare('UPDATE boards SET invite_token = ? WHERE id = ?').run(token, boardId);
+    return token;
+  }
+
   deleteBoard(boardId: string): void {
     transaction(this.db, () => {
       this.db.prepare('DELETE FROM cards WHERE board_id = ?').run(boardId);

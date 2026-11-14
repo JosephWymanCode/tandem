@@ -72,6 +72,8 @@ export type ServerMsg =
   | { t: 'members'; members: Member[] }
   | { t: 'comment.added'; comment: Comment }
   | { t: 'comment.deleted'; commentId: string; cardId: string }
+  /** The owner reset the invite link; the old one no longer works. */
+  | { t: 'invite'; inviteToken: string }
   | { t: 'pong' };
 
 const coordinate = z.number().finite().min(-100_000).max(100_000);

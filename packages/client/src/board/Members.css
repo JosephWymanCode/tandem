@@ -1,0 +1,83 @@
+/* People on the board, inside the Share dialog. Colours come from the theme tokens only. */
+
+.members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.members h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.members-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.4rem;
+}
+
+.members-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.members-you {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.members-role {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--lane);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.members-confirm {
+  width: 100%;
+  justify-content: flex-end;
+  font-size: 0.93rem;
+}
+
+.members-action {
+  align-self: flex-start;
+}
+
+.members-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--lane);
+}
+
+.members-panel p {
+  font-weight: 600;
+}
+
+.members-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

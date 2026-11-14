@@ -52,7 +52,7 @@ class Room {
     readonly boardId: string,
     private state: BoardState,
     private seq: number,
-    private readonly inviteToken: string,
+    private inviteToken: string,
     private readonly repo: Repo,
   ) {}
 
@@ -121,6 +121,8 @@ class Room {
   }
 
   private receive(conn: Conn, text: string): void {
+    // A connection dropped from the room (its person was removed) may still deliver frames while it closes.
+    if (!this.conns.has(conn.id)) return;
     const now = Date.now();
     if (now - conn.windowStart >= 1000) {
       conn.windowStart = now;
@@ -163,39 +165,64 @@ class Room {
   }
 
   private handleOp(conn: Conn, cid: string, op: Op): void {
+    const error = this.commit(conn.user, cid, op);
+    if (error) this.send(conn, { t: 'reject', cid, reason: error });
+  }
+
+  /** Orders, saves and sends one operation made by `user`. Returns the reason it was refused, or null. */
+  private commit(user: User, cid: string, op: Op): string | null {
     const result = applyOp(this.state, op);
-    if (!result.ok) {
-      this.send(conn, { t: 'reject', cid, reason: result.error });
-      return;
-    }
+    if (!result.ok) return result.error;
     if (
       op.type === 'card.update' &&
       op.patch.assigneeId != null &&
       this.repo.getRole(this.boardId, op.patch.assigneeId) === null
     ) {
-      this.send(conn, { t: 'reject', cid, reason: 'That person is not on this board' });
-      return;
+      return 'That person is not on this board';
     }
 
     const event: OpEvent = {
       seq: this.seq + 1,
       cid,
       op,
-      by: conn.user.id,
-      byName: conn.user.name,
+      by: user.id,
+      byName: user.name,
       at: Date.now(),
       summary: describeOp(this.state, op),
     };
     try {
       this.repo.persistOp(this.boardId, event);
     } catch {
-      this.send(conn, { t: 'reject', cid, reason: 'The change could not be saved' });
-      return;
+      return 'The change could not be saved';
     }
 
     this.state = result.state;
     this.seq = event.seq;
     this.broadcast({ t: 'op', ...event });
+    return null;
+  }
+
+  /**
+   * Someone was taken off the board (the database row is already gone): close
+   * their connections, unassign their cards through the normal operation path
+   * so every client and the log agree, and tell everyone else.
+   */
+  memberRemoved(userId: string, by: User): void {
+    for (const conn of this.conns.values()) {
+      if (conn.user.id !== userId) continue;
+      conn.ws.close(CLOSE.forbidden, 'You are not on this board');
+      this.leave(conn);
+    }
+    for (const card of Object.values(this.state.cards)) {
+      if (card.assigneeId !== userId) continue;
+      this.commit(by, randomUUID(), { type: 'card.update', id: card.id, patch: { assigneeId: null } });
+    }
+    this.sendMembers();
+  }
+
+  inviteReset(inviteToken: string): void {
+    this.inviteToken = inviteToken;
+    this.broadcast({ t: 'invite', inviteToken });
   }
 }
 
@@ -249,6 +276,27 @@ export class RoomManager {
   /** Sends a message to everyone who has the board open. */
   broadcast(boardId: string, msg: ServerMsg): void {
     this.rooms.get(boardId)?.broadcast(msg);
+  }
+
+  /**
+   * Call after removing `userId` from the board in the database. Their cards
+   * are unassigned through the open room if there is one. Otherwise the board
+   * is read from the database and the same operations are written straight
+   * back, so the log still lets a reconnecting client catch up.
+   */
+  memberRemoved(boardId: string, userId: string, by: User): void {
+    let room = this.rooms.get(boardId);
+    if (!room) {
+      const loaded = this.repo.loadBoard(boardId);
+      if (!loaded) return;
+      // Nobody is connected, so this room is used once and never registered.
+      room = new Room(boardId, loaded.state, loaded.seq, loaded.inviteToken, this.repo);
+    }
+    room.memberRemoved(userId, by);
+  }
+
+  inviteReset(boardId: string, inviteToken: string): void {
+    this.rooms.get(boardId)?.inviteReset(inviteToken);
   }
 
   closeBoard(boardId: string): void {

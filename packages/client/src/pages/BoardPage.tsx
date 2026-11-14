@@ -4,6 +4,7 @@ import type { Activity, Member, Peer } from '@tandem/shared';
 import { Canvas } from '../board/Canvas';
 import { CardDialog } from '../board/CardDialog';
 import { FilterBar } from '../board/FilterBar';
+import { Members } from '../board/Members';
 import { useBoard, type ConnectionStatus } from '../board/store';
 import { UndoButtons } from '../board/UndoButtons';
 import { Avatar, Wordmark } from '../components/Avatar';
@@ -107,7 +108,9 @@ function People({ members, peers, you }: { members: Member[]; peers: Peer[]; you
 
 function ShareDialog({ token, onClose }: { token: string; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const [copied, setCopied] = useState(false);
+  // Remembers which link was copied, so a reset invite link reads "Copy link" again.
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const copied = copiedToken === token;
   const link = `${location.origin}/join/${token}`;
 
   useEffect(() => {
@@ -117,7 +120,7 @@ function ShareDialog({ token, onClose }: { token: string; onClose: () => void })
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link);
-      setCopied(true);
+      setCopiedToken(token);
     } catch {
       // Clipboard access can be refused; the link is selectable as a fallback.
       dialog.current?.querySelector('input')?.select();
@@ -143,6 +146,7 @@ function ShareDialog({ token, onClose }: { token: string; onClose: () => void })
             {copied ? 'Link copied' : 'Copy link'}
           </button>
         </div>
+        <Members />
         <div className="dialog-actions">
           <span />
           <button className="button button-dark" onClick={() => dialog.current?.close()}>

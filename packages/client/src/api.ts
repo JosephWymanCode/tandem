@@ -61,4 +61,7 @@ export const api = {
     request<{ comment: Comment }>('POST', `/api/boards/${boardId}/cards/${cardId}/comments`, { body }),
   deleteComment: (boardId: string, commentId: string) =>
     request<{ ok: true }>('DELETE', `/api/boards/${boardId}/comments/${commentId}`),
+  removeMember: (boardId: string, userId: string) =>
+    request<{ ok: true }>('DELETE', `/api/boards/${boardId}/members/${userId}`),
+  resetInvite: (boardId: string) => request<{ inviteToken: string }>('POST', `/api/boards/${boardId}/invite/reset`),
 };

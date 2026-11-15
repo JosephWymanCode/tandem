@@ -4,7 +4,7 @@
 
 A kanban board that several people can edit at the same time. Move a card and everyone else on the board sees it land, along with your cursor and which card you have open.
 
-![Two people working on the same board, with the activity feed open](docs/board.png)
+![Two people working on the same board, with due dates, a comment count and the activity feed open](docs/board.png)
 
 ## Try it
 
@@ -26,12 +26,21 @@ Open http://localhost:5173, choose **Try it as a guest**, then open the same add
 - **Live collaboration.** Changes reach every open browser immediately. You see other people's cursors, who is on the board, and a coloured outline on any card someone else has open or is dragging.
 - **Drag and drop** for cards and columns, with mouse, touch or keyboard.
 - **Works through a dropped connection.** Your changes apply on your own screen straight away. If the connection drops you can keep working; the changes are sent when it returns, and anything the server refuses is rolled back with a message.
-- **Accounts and guests.** Email and password accounts, or one click to start as a guest. Boards are shared by invite link.
+- **Due dates.** A card can have a due date, shown on the card in your own date format. It turns amber when it is due within two days and red once it has passed.
+- **Comments.** Every card has a comment thread that updates live for everyone, and the card shows how many comments it has. Authors and the board owner can delete comments.
+- **Search and filters.** Search titles and descriptions (press `/` to jump to the search box), or filter by label and assignee. Your filter is yours alone: other people still see the whole board, and a card you drag while filtering lands where it looked for everyone.
+- **Undo and redo** (Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y) for your own changes. Undo never reverts someone else's work, and other people see your undo happen live.
+- **Dark theme.** Choose System, Light or Dark. System follows your operating system's setting.
+- **Accounts and guests.** Email and password accounts, or one click to start as a guest. A guest can later create an account and keep every board they made.
+- **Sharing and members.** Boards are shared by invite link. The owner can remove people or reset the link so the old one stops working, and members can leave a board.
+- **Export and import.** Download a board as JSON (a full backup) or CSV (for spreadsheets), and import a JSON export as a new board.
 - **Activity feed** listing who changed what.
 
-| Start page | Editing a card |
+| Start page | A card with its due date and comments |
 | --- | --- |
-| ![Start page](docs/home.png) | ![Card dialog](docs/card.png) |
+| ![Start page](docs/home.png) | ![Card dialog with a due date and a comment thread](docs/card.png) |
+
+![The board in the dark theme, narrowed by a search, with column counts such as "1 of 4"](docs/dark.png)
 
 ## How it works
 
@@ -88,13 +97,17 @@ npm run typecheck
 
 - **Unit tests** cover the reducer, position keys, and the sync state, including a test that interleaves two clients' operations in different orders and checks both end up identical to the server.
 - **Integration tests** start the real server on a free port with an in-memory database and drive it with real WebSocket clients: simultaneous edits, rejected operations, reconnecting, persistence, access control.
-- **Browser tests** run two separate browser profiles against the production build: one drags a card and the other watches it move, and one makes a change while disconnected and it arrives after reconnecting.
+- **Browser tests** run two separate browser profiles against the production build: one drags a card and the other watches it move, and one makes a change while disconnected and it arrives after reconnecting. Each feature above also has its own browser test, for example a comment appearing live for the second person, or an undo that leaves the other person's change alone.
 
 GitHub Actions runs all of the above on every push.
 
 ## Deploying
 
 The included [`render.yaml`](render.yaml) deploys the app to [Render](https://render.com)'s free tier as a single web service: create a new Blueprint in Render and point it at this repository.
+
+Render redeploys on each push to `main` only if the repository is connected through Render's GitHub app. If the service was created without it, pushes do nothing and each deploy has to be started by hand (**Manual Deploy** in the Render dashboard). To check what is live, compare the commit shown on the service's **Events** page with the latest commit on `main`.
+
+To refresh the screenshots in `docs/`, start the app (`npm run build && npm start`) and run `node scripts/screenshots.mjs`.
 
 Two limits of free hosting to know about:
 

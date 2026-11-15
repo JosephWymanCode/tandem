@@ -121,7 +121,10 @@ test('label and assignee filters work together and clear in one go', async ({ pa
   await page.getByLabel('Search cards').fill('launch');
   await expect(page.locator('.card')).toHaveCount(2);
   await page.getByRole('link', { name: 'All boards' }).click();
-  await expect(page).toHaveURL(/\/boards$/);
+  // Wait for the boards page itself, not just the URL: React Router changes the URL
+  // first and renders the new route in a transition, so going back too early would
+  // cancel the navigation before the board ever unmounted.
+  await expect(page.getByRole('heading', { name: 'Your boards' })).toBeVisible();
   await page.goBack();
   await expect(page.locator('.card')).toHaveCount(10);
   await expect(page.getByLabel('Search cards')).toHaveValue('');
